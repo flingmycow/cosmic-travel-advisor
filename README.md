@@ -2,6 +2,12 @@
 
 A multi-agent travel planner built with **Google ADK (Agent Development Kit)**, **MCP (Model Context Protocol)**, and **Streamlit**. Pick your Western zodiac sign (including decan) and/or Chinese zodiac animal—or enter your birthday to calculate them—and the agent researches your travel persona, suggests 5 destinations across multiple continents with real landmarks via Google Maps, and lets you deep-dive into maps and live flight/weather logistics.
 
+## 📸 Screenshots
+
+| Zodiac Persona & Destination Grid | City Deep Dive (Google Maps MCP + Live Logistics) |
+| :---: | :---: |
+| ![Cosmic Travel Agent Grid](travel_agent/frontend/assets/cosmic_agent_grid.jpg) | ![Deep Dive Tokyo Map and Logistics](travel_agent/frontend/assets/deep_dive_tokyo.jpg) |
+
 ## 🏗️ Architecture
 
 The backend uses a **coordinator + isolated sub-agent** pattern (`AgentTool`) so each sub-agent can use its own specialized toolset (native Google Search vs. MCP servers) without tool-mixing conflicts:

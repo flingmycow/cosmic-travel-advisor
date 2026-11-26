@@ -3,6 +3,68 @@ import pandas as pd
 from services.adk_bridge import AdkService
 from utils.custom_func import extract_json_from_text
 
+
+def _extract_lat_lon(data):
+    """Extract (lat, lon) from flat or nested JSON regardless of lng/lon/longitude naming."""
+    if isinstance(data, list) and data:
+        return _extract_lat_lon(data[0])
+    if not isinstance(data, dict):
+        return None
+    lower = {k.lower(): v for k, v in data.items()}
+    lat = lower.get("lat", lower.get("latitude"))
+    lon = lower.get("lng", lower.get("lon", lower.get("longitude")))
+    if lat is not None and lon is not None:
+        try:
+            return float(lat), float(lon)
+        except (TypeError, ValueError):
+            return None
+    for v in data.values():
+        if isinstance(v, (dict, list)):
+            found = _extract_lat_lon(v)
+            if found:
+                return found
+    return None
+
+
+def _normalize_logistics(data):
+    """Unwrap nested dicts/lists and map common key aliases to the expected logistics schema."""
+    if isinstance(data, list) and data:
+        data = data[0]
+    if not isinstance(data, dict):
+        return None
+
+    # Flatten nested dicts (e.g. {"logistics": {...}} or {"flights": {...}, "weather": {...}})
+    flat = {}
+    for k, v in data.items():
+        if isinstance(v, dict):
+            for nk, nv in v.items():
+                if not isinstance(nv, (dict, list)):
+                    flat[nk.lower()] = nv
+        elif not isinstance(v, list):
+            flat[k.lower()] = v
+
+    aliases = {
+        "cost": ["cost", "flight_cost", "avg_flight_cost", "average_flight_cost", "price"],
+        "duration": ["duration", "flight_duration", "travel_time"],
+        "current_date_time": ["current_date_time", "current_time", "local_time", "date_time", "datetime"],
+        "current_temp": ["current_temp", "current_temperature", "temp", "temperature"],
+        "current_rain": ["current_rain", "current_rain_chance", "rain_chance", "rain", "precipitation"],
+        "best_time_to_visit": ["best_time_to_visit", "best_time", "best_season"],
+        "best_time_avg_temp": ["best_time_avg_temp", "seasonal_avg_temp", "best_time_temp"],
+        "best_time_rain_chance": ["best_time_rain_chance", "seasonal_rain_risk", "best_time_rain"],
+        "flight_summary": ["flight_summary", "summary", "airlines", "routes"],
+    }
+
+    normalized = {}
+    for canonical, candidates in aliases.items():
+        for key in candidates:
+            if key in flat and flat[key] not in (None, ""):
+                normalized[canonical] = flat[key]
+                break
+
+    return normalized or None
+
+
 def render_detail_view():
     city = st.session_state.get("selected_city")
 
@@ -24,15 +86,16 @@ def render_detail_view():
 
     show_map = st.button("Show Map")
     if show_map:
-        prompt = f"Get the lat lon for the city {city['name']}"
+        prompt = f"Get the lat and lng coordinates for the city {city['name']}. Return JSON with keys 'lat' and 'lng'."
         with st.spinner(f"Locating {city['name']}..."):
             success = AdkService.send_message(prompt, isolated=True)
 
         if success:
             last_msg = extract_json_from_text(st.session_state.messages[-1]['content'])
-            if last_msg and 'lat' in last_msg and 'lng' in last_msg:
+            coords = _extract_lat_lon(last_msg)
+            if coords:
                 st.session_state.selected_city['pois'] = [
-                    {'lat': float(last_msg['lat']), 'lon': float(last_msg['lng']), 'name': city['name']}
+                    {'lat': coords[0], 'lon': coords[1], 'name': city['name']}
                 ]
             else:
                 st.error("Could not parse coordinates for this city.")
@@ -54,8 +117,13 @@ def render_detail_view():
         if st.button("Get Live Logistics Info"):
             with st.spinner(f"Searching flights and weather for {city['name']}..."):
                 # 1. Send specific instruction to Coordinator
-                # The Coordinator will see 'flight' and 'weather' and route to 'logistics_specialist'
-                prompt = f"Get flight cost, duration, and current weather for {city['name']} from London. Return JSON."
+                # The Coordinator will see 'flight' and 'weather' and route to 'high_level_travel_agent'
+                prompt = (
+                    f"Get flight cost, duration, current weather, local time, and best time to visit "
+                    f"for {city['name']} from London. Return flat JSON with keys: cost, duration, "
+                    f"current_date_time, current_temp, current_rain, best_time_to_visit, "
+                    f"best_time_avg_temp, best_time_rain_chance, flight_summary."
+                )
 
                 # Assuming AdkService handles the chat interaction
                 success = AdkService.send_message(prompt, isolated=True)
@@ -64,7 +132,7 @@ def render_detail_view():
                 new_data = None
                 if success:
                     last_msg_content = st.session_state.messages[-1]['content']
-                    new_data = extract_json_from_text(last_msg_content)
+                    new_data = _normalize_logistics(extract_json_from_text(last_msg_content))
 
                 if new_data:
                     # 3. Update the Session State directly
