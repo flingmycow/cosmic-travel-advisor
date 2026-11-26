@@ -1,0 +1,22 @@
+# do not commit the env file! :D
+.env
+
+# Ignore all pycache folders
+__pycache__/
+
+# Ignore individual compiled files (just in case)
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore ADK local state / session DBs
+.adk/
+
+# Ignore IDE & OS files
+.idea/
+*.iml
+.DS_Store
+
+# Ignore virtual environments
+.venv/
+venv/
