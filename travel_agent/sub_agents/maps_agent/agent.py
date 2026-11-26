@@ -26,7 +26,7 @@ maps_mcp_tool = McpToolset(
 )
 
 planner_agent = Agent(
-    model='gemini-2.5-flash',
+    model='gemini-3.8-flash',
     name='planner',
     description="Recommends 5 travel destinations and a top pick with real Google Maps landmarks based on a personality profile.",
     instruction="""
@@ -70,7 +70,7 @@ planner_agent = Agent(
 # Usage: Strictly technical geocoding (City Name -> Lat/Long).
 geocoder_agent = Agent(
     name="geocoder_utility",
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     description="Converts city names or addresses into geographic coordinates (latitude/longitude).",
     instruction="""
     You are a strict geocoding utility. 

@@ -10,7 +10,7 @@ schema_instruction = json.dumps(HoroscopeResponse.model_json_schema(), indent=2)
 # Sub-Agent A: The Researcher (Uses Native Google Search)
 # This agent is ISOLATED, so it can use Google Search without conflict.
 horoscope_agent = Agent(
-    model='gemini-2.5-flash',
+    model='gemini-3.8-flash',
     name='horoscope_researcher',
     description="Analyzes zodiac signs to create a structured Travel Persona",
     instruction="""
@@ -34,7 +34,7 @@ horoscope_agent = Agent(
 
 # this agent formats the output from the horoscope researcher agent as cannot use output_schema with the google_search tool??
 horoscope_formatter_agent = Agent(
-    model='gemini-2.5-flash',
+    model='gemini-3.8-flash',
     name='profiler',
     instruction="""
     You are a data extraction expert. 
@@ -46,7 +46,7 @@ horoscope_formatter_agent = Agent(
 )
 
 high_level_travel_agent = Agent(
-    model='gemini-2.5-flash',
+    model='gemini-3.8-flash',
     name='high_level_travel_agent',
     description="Gets high level travel logistics: avg flight costs, flight duration, weather, best travel season",
     instruction="""
@@ -77,7 +77,7 @@ high_level_travel_agent = Agent(
 )
 
 itinerary_agent = Agent(
-    model='gemini-2.5-flash',
+    model='gemini-3.8-flash',
     name='itinerary_agent',
     description="Based on the horoscope/zodiac and travel characteristics",
     instruction="""

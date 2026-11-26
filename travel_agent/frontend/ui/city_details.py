@@ -26,7 +26,7 @@ def render_detail_view():
     if show_map:
         prompt = f"Get the lat lon for the city {city['name']}"
         with st.spinner(f"Locating {city['name']}..."):
-            success = AdkService.send_message(prompt)
+            success = AdkService.send_message(prompt, isolated=True)
 
         if success:
             last_msg = extract_json_from_text(st.session_state.messages[-1]['content'])
@@ -58,7 +58,7 @@ def render_detail_view():
                 prompt = f"Get flight cost, duration, and current weather for {city['name']} from London. Return JSON."
 
                 # Assuming AdkService handles the chat interaction
-                success = AdkService.send_message(prompt)
+                success = AdkService.send_message(prompt, isolated=True)
 
                 # 2. Extract the JSON from the last message
                 new_data = None

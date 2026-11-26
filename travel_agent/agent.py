@@ -18,7 +18,7 @@ accommodation_tool = AgentTool(airbnb_agent)
 # This avoids the "Multiple tools" error completely.
 
 root_agent = Agent(
-    model='gemini-2.5-flash',
+    model='gemini-3.8-flash',
     name='travel_coordinator',
     instruction="""
     You are a Travel Coordinator. Your goal is to generate a horoscope-based itinerary.

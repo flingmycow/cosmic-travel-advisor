@@ -16,7 +16,7 @@ airbnb_mcp_tool = McpToolset(
 )
 
 airbnb_agent = Agent(
-    model='gemini-2.5-flash',
+    model='gemini-3.8-flash',
     name='airbnb',
     description="Finds and filters Airbnb accommodation listings for a given city, dates, guests, and budget.",
     instruction="""
